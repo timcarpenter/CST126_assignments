@@ -1,0 +1,582 @@
+
+Assignment 2
+
+CST 126 - C++ Programming II
+
+
+Due Date:   Saturday, January 30th by 11:59pm.
+
+
+Basic terminology
+-----------------
+
+The following terminology is used in this document:
+
+  - cryptography: the science of encrypting/decrypting messages
+
+  - plaintext: a message string that is not encoded
+
+  - ciphertext: a message string that is encoded
+
+  - encryption algorithm: an algorithm that converts plaintext
+    to ciphertext using a key
+
+  - decryption algorithm: an algorithm that converts ciphertext
+    to plaintext using a key
+
+  - key: a value (integer or string for this assignment) that is used
+    along with an encryption algorithm to encrypt or decrypt a message.
+
+
+This assignment
+---------------
+
+In this assignment you will implement four different cryptography
+algorithms. They are called:
+
+  Caesar
+  Substitution
+  Vigenere
+  Transposition
+
+Each of these algorithms is explained in the detail (with examples)
+later in this document.
+
+For each algorithm you will provide an encryption function (to
+convert a plaintext string to a ciphertext string) and a
+decryption function (to convert a ciphertext string to a plaintext
+string). The prototypes for these functions are already provided
+for you in the algorithms.h header file.
+
+You are NOT allowed to modify algorithms.h file for this assignment.
+
+The encryption and decryption functions each have the following
+parameters:
+
+  plaintext: this is a string of maximum length MAX_MSG_SIZE. For
+     encryption routines this contains the plaintext message string
+     that needs to be converted to ciphertext. For decryption routines
+     this is the string that will contain the plaintext results
+     of decrypting.
+
+  ciphertext: this is a string of maximum length MAX_MSG_SIZE. For
+     decryption routines this contains the ciphertext message string
+     that needs to be converted to plaintext. For encryption routines
+     this is the string that will contain the ciphertext results
+     of encrypting.
+
+  key: this parameter provides the encryption/decryption key that is
+     to be used by the algorithm. The datatype and use of this
+     parameter varies based on the cryptography algorithm. Keys are
+     explained in more detail in the alorithm descriptions later on
+     in this document.
+
+
+Provided constants/macros
+-------------------------
+
+The following constants and macros are provided in algorithms.h
+for your use in this assignment to avoid hard-coding ASCII/numeric
+or needing to use character literals:
+
+  MAX_MSG_SIZE - this is the maximum length allowed for a
+       message string, including the zero terminator.
+
+  MIN_ASCII_VALUE - this is the minimum alphabetic character
+       allowed in messages
+
+  MAX_ASCII_VALUE - this is the maximum alphabetic character
+       allowed in messages
+
+  NUM_CHARACTERS - this is the number of alphabetic characters
+       between MIN_ASCII_VALUE and MAX_ASCII_VALUE, inclusive.
+
+  CHAR_OUT_OF_RANGE(c) - this macro will return true if c is
+       outside the range of MIN_ASCII_VALUE to MAX_ASCII value. This
+       can be used to easily determine if a character should be
+       translated when encrypting or decrypting.
+
+
+Algorithm #1: caesar
+--------------------
+
+The caesar encryption/decryption algorithm shifts the ASCII values
+of characters in a message. The key for this algorithm is an integer
+value that specifies the shift amount to use.
+
+Here's the rules of this algorithm:
+
+ - the key value for Caesar is an integer value that is added to
+   the plaintext character to get the ciphertext character in the
+   case of encryption and subtracted from the ciphertext character
+   to get the plaintext character in the case of decryption.
+
+ - for example, when encrypting, a key value of 1 adds one to
+   the ASCII values of all alphabetic characters in the plaintext
+   to create the ciphertext. Decryption works the same way except
+   subtraction is used to convert alphabetic characters in the
+   ciphertext back to plaintext.
+
+ - for cases where a shift occurs beyond the range of the alphabet
+   (past the letter MAX_ASCII_VALUE), wrapping back to the
+   MIN_ASCII_VALUE should be performed. Likewise, when decrypting a shift
+   backwards beyond MIN_ASCII_VALUE wraps around to MAX_ASCII_VALUE.
+
+ - all characters outside of the valid range do not have their ASCII
+   values shifted and are justed copied from the plaintext string to
+   the ciphertext string for encyption, and from the ciphertext string
+   to the plaintext string for decryption.
+
+ - any integer key values are allowed, including negative numbers.
+   For example, a key value of 26 is equivalent to a key value of 0.
+   27 is equivalent to a key of 1. -1 is equivalent to 25.  3 is
+   equivalent to -75, -49, -23, 29, 55, 81, ...
+
+Here are some examples:
+
+  Encyption:
+
+           key: 1
+     plaintext: hello
+    ciphertext: ifmmp
+
+           key: 3
+     plaintext: vwx yz
+    ciphertext: yza bc
+
+           key: 15
+     plaintext: how are you?
+    ciphertext: wdl pgt ndj?
+
+  Decryption:
+
+           key: 1
+    ciphertext: ifmmp
+     plaintext: hello
+
+           key: 7
+    ciphertext: qvssf nvvk, tf mypluk
+     plaintext: jolly good, my friend
+
+
+Algorithm #2: substitution
+--------------------------
+
+The substitution encryption/decryption algorithm replaces plaintext
+characters with key characters to create the ciphertext. The key for
+this algorithm is a string of NUM_CHARACTERS unique characters in the
+range of MIN_ASCII_VALUE to MAX_ASCII_VALUE.
+
+Here's the rules of this algorithm:
+
+ - when encrypting, use the alphabetic sequence number of a plaintext
+   character as the index into the key string to find the substitution
+   character. 'a' (MIN_ASCII_VALUE) has a sequence number of 0, 'b' has
+   a sequence number of 1, 'c' has a sequence number of 2, and so on. So
+   a plaintext character of 'c' would be replaced with the character in
+   the key string at index position 2.
+
+ - decryption works in reverse: the key index position of a ciphertext
+   character is the alphabetic sequence number of the cooresponding
+   plaintext character.
+
+ - all characters outside of the valid range do not have their ASCII
+   values shifted and are justed copied from the plaintext string to
+   the ciphertext string for encyption, and from the ciphertext string
+   to the plaintext string for decryption.
+
+Here are some examples:
+
+  Encyption:
+
+           key: wumrlvzabxsyhjnkqgopfcetid
+     plaintext: hello
+    ciphertext: alyyn
+
+           key: zfpwdkojiuesxrhygtbmvcqnla
+     plaintext: hello
+    ciphertext: jdssh
+
+           key: zfpwdkojiuesxrhygtbmvcqnla
+     plaintext: by gosh, it works pretty well!
+    ciphertext: fl ohbj, im qhteb ytdmml qdss!
+
+  Decryption:
+
+           key: cpjwhvqksnerdilutbozmfagyx
+    ciphertext: wlho sz albe?
+     plaintext: does it work?
+
+
+Algorithm #3: vigenere
+----------------------
+
+The vigenere algorithm uses a key word along with a lookup
+table to encrypt and decrypt messages.
+
+Here's the rules of this algorithm:
+
+ - the key will always be a single word made up of only the characters
+   in the range of MIN_ASCII_VALUE to MAX_ASCII_VALUE.
+
+ - encryption of each plaintext character to a ciphertext character
+   is done by using a plaintext character and it's cooresponding
+   key character as the column and row values, respectively, in
+   the vigenere lookup table (see below) to determine the
+   cooresponding ciphertext character. For example, if the first
+   character of the plaintext is 't' and the first character of the
+   key is 'j', the ciphertext character is 'c'.
+
+ - The first character of the plaintext is used with the first character
+   of the key to determine the ciphertext character. Then the
+   second character of the plaintext is used with the second character
+   of the key, and so on. If the key is shorter than the plaintext,
+   then the key should be repeatedly used starting back at the begining.
+   As an example, consider plaintext of "california" and a key of
+   "fred". The following table illustrates the character translation:
+
+      plaintext    key     ciphertext
+      ---------    ---     ----------
+          c         f          h
+          a         r          r
+          l         e          p
+          i         d          l
+          f         f          k
+          o         r          f
+          r         e          v
+          n         d          q
+          i         f          n
+          a         r          r
+
+ - all characters outside of the valid range do not have their ASCII
+   values shifted and are justed copied from the plaintext string to
+   the ciphertext string for encyption, and from the ciphertext string
+   to the plaintext string for decryption. When such a character is
+   encountered, the key character is still incremented. For example,
+   here is the encryption of the plaintext "hello there" with a key of
+   "calvin":
+
+      plaintext    key     ciphertext
+      ---------    ---     ----------
+          h         c          j
+          e         a          e
+          l         l          w
+          l         v          g
+          o         i          w
+                    n
+          t         c          v
+          h         a          h
+          e         l          p
+          r         v          m
+          e         i          m
+
+ - decryption is accomplished with a reverse-lookup using
+   the same vigenere table.
+
+
+Here is the vigenere lookup table (column indicator is the plaintext
+character, row indicator is the key character, the table location
+where they meet is the ciphertext character):
+
+                     plaintext character
+  key
+ char  a b c d e f g h i j k l m n o p q r s t u v w x y z
+ ----  ---------------------------------------------------
+   a - a b c d e f g h i j k l m n o p q r s t u v w x y z
+   b - b c d e f g h i j k l m n o p q r s t u v w x y z a
+   c - c d e f g h i j k l m n o p q r s t u v w x y z a b
+   d - d e f g h i j k l m n o p q r s t u v w x y z a b c
+   e - e f g h i j k l m n o p q r s t u v w x y z a b c d
+   f - f g h i j k l m n o p q r s t u v w x y z a b c d e
+   g - g h i j k l m n o p q r s t u v w x y z a b c d e f
+   h - h i j k l m n o p q r s t u v w x y z a b c d e f g
+   i - i j k l m n o p q r s t u v w x y z a b c d e f g h
+   j - j k l m n o p q r s t u v w x y z a b c d e f g h i
+   k - k l m n o p q r s t u v w x y z a b c d e f g h i j
+   l - l m n o p q r s t u v w x y z a b c d e f g h i j k
+   m - m n o p q r s t u v w x y z a b c d e f g h i j k l
+   n - n o p q r s t u v w x y z a b c d e f g h i j k l m
+   o - o p q r s t u v w x y z a b c d e f g h i j k l m n
+   p - p q r s t u v w x y z a b c d e f g h i j k l m n o
+   q - q r s t u v w x y z a b c d e f g h i j k l m n o p
+   r - r s t u v w x y z a b c d e f g h i j k l m n o p q
+   s - s t u v w x y z a b c d e f g h i j k l m n o p q r
+   t - t u v w x y z a b c d e f g h i j k l m n o p q r s
+   u - u v w x y z a b c d e f g h i j k l m n o p q r s t
+   v - v w x y z a b c d e f g h i j k l m n o p q r s t u
+   w - w x y z a b c d e f g h i j k l m n o p q r s t u v
+   x - x y z a b c d e f g h i j k l m n o p q r s t u v w
+   y - y z a b c d e f g h i j k l m n o p q r s t u v w x
+   z - z a b c d e f g h i j k l m n o p q r s t u v w x y
+
+
+Here are some more examples:
+
+  Encyption:
+
+           key: jerry
+     plaintext: toner
+    ciphertext: csevp
+
+           key: wednesday
+     plaintext: come and play the game with me
+    ciphertext: yspr sqd lpdl lke cepr oltf qh
+
+  Decryption:
+
+           key: doctor
+    ciphertext: db tdgos t udm
+     plaintext: an apple a day
+
+           key: john
+    ciphertext: j wragva, wyjql, cy cvpap
+     plaintext: a person, place, or thing
+
+
+Algorithm #4: transposition
+---------------------------
+
+The transposition algorithm does not change the character values when
+creating a ciphertext from a plaintext. Rather, it takes the plaintext
+characters and re-arranges them to create the ciphertext. The integer
+key value for this algorithm determines how the re-arranging is to
+occur.
+
+Note, the key value for this algorithm will ALWAYS be greater
+than one.
+
+Here's the rules of this algorithm:
+
+ - The length of the plaintext must be an even multiple of the
+   key value. If it is not, the plaintext should be padded with
+   'z' characters until it is an even multiple of the key.
+
+ - Encryption using transposition is conceptually done by arranging
+   the plaintext in a series of rows, where each row's length is
+   equal to the key value. Then the ciphertext is created by reading
+   the plaintext in column-order. For example, consider the plaintext
+   of "hi there, how are you" with a key value of 7. The plaintext
+   is 21 characters in length, an even multiple of 7, so no 'z' padding
+   is necessary. Here is what the plaintext looks like when arranged
+   in rows of 7 characters:
+
+     hi ther
+     e, how 
+     are you
+
+   So the ciphertext is "heai,r  eth hoyewor u".
+
+ - Note that all characters are processed the same way. This includes
+   spaces and punctuation.
+
+ - Decryption is same technique as encryption except the number of
+   rows and columns needs to be switch, and 'z' characters on the
+   end of the message need to be removed in the plaintext.
+
+Here's some more transposition examples:
+
+  Encyption:
+
+           key: 8
+     plaintext: can you feel the heat?
+    ciphertext: cf aehnee lay tot?uhz ez
+
+           key: 5
+     plaintext: we all live in an infinate sub-routine
+    ciphertext: wleafe-ie  ni rn li nsoeainiauuzlv ntbtz
+
+  Decryption:
+
+           key: 9
+    ciphertext: p ooibtscr ekayz iozynuzo,rzu  zrnnz
+     plaintext: pick your brain, not your nose
+
+
+Assumptions
+-----------
+
+For this assignment you can assume:
+
+  - the character arrays for plaintext and ciphertext that are
+    passed into the encryption/decryption functions are always
+    MAX_MSG_SIZE in length.
+
+  - plaintext and ciphertext strings will never be longer than
+    MAX_MSG_SIZE, including the zero terminator character.
+
+  - messages are always characters of the printable ASCII
+    character set (ASCII codes 32 to 127).  No other ASCII
+    characters will be used as part of plaintext messages.
+
+  - keys are always valid for the type of algorithm being
+    used. There is no need to validate the key in your functions.
+
+
+Sample executables
+------------------
+
+On the assignments web page you will find:
+
+  crypto.exe
+    This is a sample text-based Windows executable. This
+    program can be run directly from the web.
+
+  crypto_gui.exe
+  crypto.dll
+    These two files provide a sample GUI-based program
+    that can be used to understand the algoithms. Note: these
+    files must be downloaded before they can be run. The two
+    files must be put in the same directory and the dll file
+    must be called crypto.dll.
+
+
+Source code provided to you
+---------------------------
+
+On the assignments web page you will find these source code files:
+
+  algorithms.h  -  this is the header file that provides the
+      prototypes for the functions you must implement for this
+      assignment. It also contains the constants and macros that
+      were explained above. You should NOT modify this file for
+      this assignment.
+
+  crypto.cpp  -  this is the source code for the crypto.exe text-based
+      program (see above). It calls the four encryption/decryption
+      algorithms that you will provide. You can use this as one means
+      to test your algorithms.
+
+
+Your source code files
+----------------------
+
+For this assignment implement the encryption and decryption routines
+in a separate source code file for each algorithm. So you should be sending
+me these files as your solution:
+
+  caesar.cpp - this file will contain your implementation of the
+     caesarEncrypt() and caesarDecrypt() functions along with any
+     supporting functions.
+
+  substitution.cpp - this file will contain your implementation of the
+     substitutionEncrypt() and substitutionDecrypt() functions along
+     with any supporting functions.
+
+  vigenere.cpp - this file will contain your implementation of the
+     vigenereEncrypt() and vigenereDecrypt() functions along
+     with any supporting functions.
+
+  transposition.cpp - this file will contain your implementation of the
+     transpositionEncrypt() and transpositionDecrypt() functions along
+     with any supporting functions.
+
+Do not modify the algorithms.h file for this assignment.
+
+
+
+Recommendations
+---------------
+
+  - Do not try to work on all the algorithms at once. Use a
+    systematic approach to this assignment. For example:
+      o Pick one algorithm to work on
+      o Implement and test the encryption for that algorithm
+      o Implement and test the decryption for that algorithm
+      o Move on to the next algorithm and repeat
+
+  - You can use the crypto.cpp program I've provided to test
+    or you may want to write a simpler program to test your
+    functions as you develop them. For example, the following
+    short program can be used to test just the Caesar encryption:
+
+      #include <iostream>
+      #include "algorithms.h"
+
+      using  namespace  std;
+
+
+      int  main()
+      {
+        char  plaintext[MAX_MSG_SIZE];
+        char  ciphertext[MAX_MSG_SIZE];
+        int   key;
+
+        cout  <<  "Enter plaintext: ";
+        cin.getline( plaintext, MAX_MSG_SIZE );
+
+        cout  <<  "Enter integer key: ";
+        cin >> key;
+
+        caesarEncrypt( plaintext, ciphertext, key );
+
+        cout  <<  "Result:  "  <<  ciphertext  <<  endl;
+
+        return  0;
+      }
+
+  - Break down your implementation into functions. For example,
+    don't implement an entire encryption or decryption algorithm as
+    as single function. There is likely some very simple short
+    functions you can write to simplify your implementations.
+    If you find yourself writing long functions, or functions
+    with lots of nested if-statements or nested loops, there's likely
+    some opportunity to modularize and simplify your solution.
+    Ask me for help with this if you'd like.
+
+  - Each of the individual algorithms for this assignment can
+    be implemented with just a few lines of code (no more than
+    about 10). So if you find yourself with dozens of lines of
+    code for an algorithm, ask for some design/simplification
+    assistance from me.
+
+
+*** RESTRICTION ***
+-------------------
+For this assignment you are NOT allowed to use the std::string class
+provided in the <string> header. You are to implement this assignment
+using character arrays.  You can use the functions in the <cstring>
+header such as strlen(), strcpy(), and strchr().
+
+
+What I'm looking for
+--------------------
+
+  Here are specific things I'll be looking for when grading
+  this assignment:
+
+  - Source code modularity
+       o Good use of functions to breakdown complicated
+         tasks into smaller, simpler tasks.
+       o No global variables. All sharing of data between functions
+         should be done using parameter passing and return values.
+
+  - Good coding style.
+       o Good commenting
+       o Intuitive use of names for functions and variables
+       o Generous use of whitespace
+       o No magic numbers (use contants or #define instead
+         of hardcoded values)
+       o No global variables
+       o No goto statements
+       o Easy to follow what the program is doing
+       o No use of recursion in this assignment
+
+  - Proper use of strings
+       o No out-of-bounds array accesses
+       o Good looping behavior for manipulating/analyzing array data
+
+  - Good use of the string functions provided in the cstring header
+
+  - Proper use of multiple source code files
+
+  - Proper functionality of the program.
+
+  - No compiler warnings or errors. Send me email if you need
+    assistance with figuring out how to get rid of errors/warnings.
+
+
+Questions/Clarity:
+
+  If you have any questions about the requirements for this assignment,
+  or if you come up with problems as you design/implement the Tic-Tac-Toe
+  program, don't hesitate to contact the instructor.

@@ -1,0 +1,259 @@
+
+Assignment 2 - FAQ
+
+
+*** #9
+
+> Sometimes when I do the following...
+>
+>   ciphertext[idx]  =  plaintext[idx] + key;
+>
+> the value that results for the ciphertext character is
+> negative even though the key is positive.  This messes
+> my algorithm that try to adjust the ciphertext value
+> if it goes over MAX_ASCII_VALUE.  What's up with this?
+
+The underlying problem is that a char type is a signed
+value, so it can hold values of -128 to 127.
+
+When the sum of the ASCII value of the plaintext character
+plus the key is greater than 127, it actually becomes
+negative.
+
+You can prevent this by doing the calculations/adjustments
+using an unsigned char value and then putting the result
+into the ciphertext array afterwards.  Like this:
+
+  unsigned char  tempChar  =  plaintext[idx];
+
+  tempChar  +=  key;
+
+  if  (tempChar > MAX_ASCII_VALUE)
+  {
+    // do "wrapping" stuff here
+  }
+
+  cipherText[idx]  =  tempChar;
+
+
+*** #8
+
+> Can we use the string functions and classes provided in
+> the ANSI C++ header files for this assignment?
+
+You can use any of the functions in the <cstring> header
+such as strlen(), strcpy(), and strchr().
+
+You can NOT use the std::string class declared in the
+<string> header.  You are to use character arrays instead.
+
+
+*** #7
+
+> For transposition, if the plaintext message ends with z's and then
+> we pad the message with more z's when encrypting, how do we know
+> how many z's to strip off when decrypting?
+
+You don't, so just strip them all off, even if they were part of
+the original plaintext. That's what my solution does.
+
+In reality, message padding is done in a more complicated way than
+just tacking on characters to the end of a string, but I didn't
+want to make this assignment any more difficult than it already is.
+
+
+*** #6
+
+> The crypto.cpp program that you've given us expects that all the
+> encryption and decrypion algorithms are written in order for it to
+> link properly. Given this, how can we write and test one function
+> at a time as you suggested in the assignment handout?
+
+Here's three different ways you could do this:
+
+1> go into the cypto.cpp source code and comment out the lines that
+   call the encryption or decryption algorithms that you haven't
+   worked on yet. If they are not called by crypto.cpp, then the
+   linker won't give you an error if it can't find them.
+
+2> create all the functions so that the linker won't complain,
+   but don't fill in the bodies of the functions until later.
+   This is called "stubbing" a function. For example, if you
+   wanted to create stubs for the Caesar functions, you could
+   do it like this:
+
+     // in the file caesar.cpp
+
+     void  caesarEncrypt( const char  plaintext[],
+                          char        ciphertext[],
+                          int         key );
+     {
+       // not implemented yet
+     }
+
+     void  caesarDecrypt( const char  ciphertext[],
+                          char        plaintext[],
+                          int         key )
+     {
+       // not implemented yet
+     }
+
+3> you put aside the crypto.cpp test program I've provided and
+   write a simple program to test your functions as you develop
+   them. For example, the following short program can be used
+   to test just the Caesar encryption:
+
+      #include <iostream>
+      #include "algorithms.h"
+
+      using  namespace  std;
+
+
+      int  main()
+      {
+        char  plaintext[MAX_MSG_SIZE];
+        char  ciphertext[MAX_MSG_SIZE];
+        int   key;
+
+        cout  <<  "Enter plaintext: ";
+        cin.getline( plaintext, MAX_MSG_SIZE );
+
+        cout  <<  "Enter integer key: ";
+        cin >> key;
+
+        caesarEncrypt( plaintext, ciphertext, key );
+
+        cout  <<  "Result:  "  <<  ciphertext  <<  endl;
+
+        return  0;
+      }
+
+
+*** #5
+
+> Seems like with pseudo-code you need to already have a basic
+> idea of the algorithm to know how to get started. But what if
+> you don't even have a basic idea?
+
+You can figure out the algorithm by working through an example
+on paper.
+
+First, create a key that's appropriate for the algorithm (a shift
+value for Caesar, a mixed alphabet string for Substitution, etc.).
+See the assignment handout if you need some examples.
+
+Second, pick a plaintext word (or words) that you want to encrypt.
+
+Third, go through the encryption algorithm by hand following the
+instructions provided in the assignment handout. Pay careful
+attention to the steps that you are taking and write down
+pseudo-code as you go.
+
+Then translate the pseudo-code to C/C++ code.
+
+Lastly, try out your example by running your program. Use the debugger
+to verify that your program is doing what you want it to do step-by-step.
+
+
+*** #4
+
+> Can you help me out with how to design the algorithm for substitution
+> encryption?
+
+I always like to use pseudo code to design programs if the algorithm to
+develop is bigger than something that I can easily figure out in my mind.
+So let's start simple:
+
+   substitutionEncrypt()
+   {
+     For each character in the plaintext
+     {
+       translate character from plaintext to ciphertext using the key
+     }
+   }
+
+OK, that was simple. Now let's break down how to translate a single
+plaintext character to a single ciphertext character:
+
+   translate character from plaintext to ciphertext using the key
+   {
+     determine sequence number of the plaintext character in the alphabet:
+     'a' (MIN_ASCII_VALUE) is 0, 'b' is 1, and so on.
+
+     use the sequence number as the index into the key string to fetch the
+     corresponding ciphertext character
+   }
+
+That's it for encrypting using the substitution technique. The only thing
+this does not cover is the handling characters outside the valid conversion
+range.
+
+
+*** #3
+
+> How can I determine the index of a specific character
+> within a string?
+
+Use a loop to start at the beginning of the string and look at
+each character until the one you are looking for is found.
+When you find it, your looping variable will be the index.
+
+There is also a way to do it with a single statement (rather
+than a loop) using the strchr() function in the <cstring> header.
+This way involves pointer arithmetic. If you try to do it this way
+and have difficulty, send me email and I'll give you some
+assistance.
+
+
+*** #2
+
+> For the Caesar algorithm a shift amount of 2 is the same as
+> as shift amount of 2+NUM_CHARACTERS and 2+NUM_CHARACTERS*2 and
+> 2+NUM_CHARACERTS*3, and so on. How can I reduce the shift number
+> so that it is always a value in the range of 0 to NUM_CHARACTERS-1?
+
+Use the modulo operator %. This operator returns the remainder
+of integer division.
+
+  10 % 3 results in a value of 1 because 3 divides into 10 three
+  times with a remainder of 1.
+
+  100 % 12 results in a value of 4 because 12 divides into 100
+  eight times with a remainder of 4.
+
+  20 % 2 results in a value of 0 because 2 divides into 20
+  ten times with a remainder of 0.
+
+So the result of this:
+
+  int  value, n, result;
+
+  ...
+
+  result  =  value % n;
+
+will always be a number between 0 and n.
+
+
+*** #1
+
+> How can I convert an ascii character to an offset from
+> the beginning of the alphabet. For example, 'a' (MIN_ASCII_VALUE)
+> would be 1, 'b' would be 2, and so on.
+
+You can do this be subtracting the ASCII value of the lowest
+character from the ASCII value of the character you are
+working with.
+
+For example:
+
+  char  ch  =  'c';
+
+  int  result  =  ch - MIN_ASCII_VALUE;
+
+  // result is now equal to 2 if MIN_ASCII_VALUE is 'a'
+
+
+---
+
+If you have a question, send me email: hoffmanm@oit.edu
